@@ -3,6 +3,8 @@ Title: Use the pData from an ExpressionSet Object to Create a Demographics Table
 Version: 0.0.0.9000
 Authors@R: person("Jake", "Kantrowitz", email = "jjkantro@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
-Depends: R (>= 3.1.1)
+Depends:
+    R (>= 3.1.1)
 License: What license is it under?
 LazyData: true
+RoxygenNote: 5.0.1

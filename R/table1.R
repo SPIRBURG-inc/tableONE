@@ -1,3 +1,21 @@
+#' table1 - a function to generate a Table 1 figure
+#'
+#' This function allows you to generate a demographics table breaking down
+#' the provided characteristics into the groups present in groupChar and 
+#' optionally to perform tests to determine the differences between groups.
+#' This table can be saved to CSV optionally as well.
+#' @param eSet Either an expression set object or data.frame demographics table
+#' @param groupChar The trait (a column name) from the eSet object; each factor level is assumed to be a group that will be represented in the table as a new column
+#' @param characteristics The character vector of traits to summarize in the table
+#' @param groupNames [optional] User can define the names to be printed in the table, replacing the levels in the groupChar factor
+#' @param printN whether or not to add a row at the top of each column with the total number of samples present in that group
+#' @param saveResultsCSV Defaults to FALSE; whether to save the table to a csv file
+#' @param filename Defaults to tempTable1.csv; filename defining where to save the table
+#' @param testGroupDiffs Defaults to FALSE; whether or not to test the group differences on each characteristic; factors tested by fisher and numerics by aov
+#' @param factorTest - not implemented yet; Defaults to fisher.test; test used to determine group differences by factor characteristics
+#' @param numericTest - not implemented yet; Defaults to aov; test used to determine group differences by numeric characteristics
+#' @param userFuncs - not implemented yet
+#' table1(eSet=expressionSet, groupChar="CancerStatus", characteristics=c("Smoking", "Sex", "Pack Years"))
 
 table1 <- function(eSet, groupChar, characteristics,
                    groupNames=NULL, printN=T,
@@ -76,6 +94,7 @@ table1 <- function(eSet, groupChar, characteristics,
   if(testGroupDiffs){
     rowInd <- 1
     if(printN){
+      tableONE[["p-val"]][1] <- ""
       rowInd <- rowInd + 1
     }
     
@@ -106,83 +125,83 @@ table1 <- function(eSet, groupChar, characteristics,
 }
   
 
-tableRowNum <- function(eSet, characteristics){
-  numRows <- 0
-  for(i in characteristics){
-    if(class(eSet[[i]])=="factor"){
-      numRows <- numRows + 1 + length(levels(eSet[[i]]))
-    } else if (class(eSet[[i]])=="integer" | class(eSet[[i]])=="numeric"){
-      numRows <- numRows + 1
-    } 
-  }
-  return(numRows)
-}
-
-
-tableRowNames <- function(eSet, characteristics, printN){
-  tableNames <- character()
-  if(printN){
-    tableNames <- rbind(tableNames, "n")
-  }
-  for(i in characteristics){
-    tableNames <- rbind(tableNames, i)
-    if(class(eSet[[i]])=="factor"){
-      for(j in levels(eSet[[i]])){
-        tableNames <- rbind(tableNames, j)
-      }
-    } 
-  }
-  return(tableNames)
-}
-
-
-# Numeric summary returns the mean and sd (or the supplied arguments) for a given numeric vector
-numericSummary <- function(vec2Summarize, func1=mean, func2=sd, sigInts=2){
-  charSummary <- as.character(round(func1(vec2Summarize), digits=sigInts))
-  charSummary <- paste(charSummary, gsub("VAL2SUB", as.character(round(func2(vec2Summarize), digits=sigInts)),"(VAL2SUB)"))
-  return(charSummary)
-}
-
-
-returnNumSlots <- function(eSet, groupChar, group, char){
-  return(numericSummary(eSet[[char]][eSet[[groupChar]]==group]))
-}
-
-
-returnFactorSlots <- function(eSet, groupChar, group, char){
-  return(t(t(c("", summary(eSet[[char]][eSet[[groupChar]]==group])))))
-}
-
-
-returnSlots <- function(eSet, groupChar, group, char, func=NULL){
-  if(is.null(func)){
-    if(is.factor(eSet[[char]])){
-      return(returnFactorSlots(eSet, groupChar, group, char))
-    } else if(is.numeric(eSet[[char]])){
-      return(returnNumSlots(eSet, groupChar, group, char))
-    }
-  } else{
-    return(func(eSet, groupChar, group, char))
-  }
-}
-
-# Starting to much about with other kinds of slots... how to best do this though
-returnSlotsUnique <- function(eSet, groupChar, group, char){
-  return(as.character(unique(eSet[[char]][eSet[[groupChar]]==group])))
-}
-
-
-returnPVal <- function(eSet, groupChar, char, numericTest=aov, factorTest=fisher.test){
-  
-  if(is.factor(eSet[[char]])){
-    pval <- format(factorTest(eSet[[char]], eSet[[groupChar]])$p.value, digits=3)
-    pval <- t(t(c(pval, character(length(levels(eSet[[char]]))))))
-  } else if(is.numeric(eSet[[char]])){
-    #pval <- numericTest(eSet[[char]] ~ eSet[[groupChar]])$p.value
-    pval <- format(summary(aov(eSet[[char]] ~ eSet[[groupChar]]))[[1]]["Pr(>F)"][1,1], digits=3)
-  }
-  return(pval)
-}
+# tableRowNum <- function(eSet, characteristics){
+#   numRows <- 0
+#   for(i in characteristics){
+#     if(class(eSet[[i]])=="factor"){
+#       numRows <- numRows + 1 + length(levels(eSet[[i]]))
+#     } else if (class(eSet[[i]])=="integer" | class(eSet[[i]])=="numeric"){
+#       numRows <- numRows + 1
+#     } 
+#   }
+#   return(numRows)
+# }
+# 
+# 
+# tableRowNames <- function(eSet, characteristics, printN){
+#   tableNames <- character()
+#   if(printN){
+#     tableNames <- rbind(tableNames, "n")
+#   }
+#   for(i in characteristics){
+#     tableNames <- rbind(tableNames, i)
+#     if(class(eSet[[i]])=="factor"){
+#       for(j in levels(eSet[[i]])){
+#         tableNames <- rbind(tableNames, j)
+#       }
+#     } 
+#   }
+#   return(tableNames)
+# }
+# 
+# 
+# # Numeric summary returns the mean and sd (or the supplied arguments) for a given numeric vector
+# numericSummary <- function(vec2Summarize, func1=mean, func2=sd, sigInts=2){
+#   charSummary <- as.character(round(func1(vec2Summarize), digits=sigInts))
+#   charSummary <- paste(charSummary, gsub("VAL2SUB", as.character(round(func2(vec2Summarize), digits=sigInts)),"(VAL2SUB)"))
+#   return(charSummary)
+# }
+# 
+# 
+# returnNumSlots <- function(eSet, groupChar, group, char){
+#   return(numericSummary(eSet[[char]][eSet[[groupChar]]==group]))
+# }
+# 
+# 
+# returnFactorSlots <- function(eSet, groupChar, group, char){
+#   return(t(t(c("", summary(eSet[[char]][eSet[[groupChar]]==group])))))
+# }
+# 
+# 
+# returnSlots <- function(eSet, groupChar, group, char, func=NULL){
+#   if(is.null(func)){
+#     if(is.factor(eSet[[char]])){
+#       return(returnFactorSlots(eSet, groupChar, group, char))
+#     } else if(is.numeric(eSet[[char]])){
+#       return(returnNumSlots(eSet, groupChar, group, char))
+#     }
+#   } else{
+#     return(func(eSet, groupChar, group, char))
+#   }
+# }
+# 
+# # Starting to much about with other kinds of slots... how to best do this though
+# returnSlotsUnique <- function(eSet, groupChar, group, char){
+#   return(as.character(unique(eSet[[char]][eSet[[groupChar]]==group])))
+# }
+# 
+# 
+# returnPVal <- function(eSet, groupChar, char, numericTest=aov, factorTest=fisher.test){
+#   
+#   if(is.factor(eSet[[char]])){
+#     pval <- format(factorTest(eSet[[char]], eSet[[groupChar]])$p.value, digits=3)
+#     pval <- t(t(c(pval, character(length(levels(eSet[[char]]))))))
+#   } else if(is.numeric(eSet[[char]])){
+#     #pval <- numericTest(eSet[[char]] ~ eSet[[groupChar]])$p.value
+#     pval <- format(summary(aov(eSet[[char]] ~ eSet[[groupChar]]))[[1]]["Pr(>F)"][1,1], digits=3)
+#   }
+#   return(pval)
+# }
 
 
 
