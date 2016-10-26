@@ -1,8 +1,11 @@
-Package: tableONE
-Title: Use the pData from an ExpressionSet Object to Create a Demographics Table
+Package: tableONE2
+Title: Table One Figure Creation
 Version: 0.0.0.9000
 Authors@R: person("Jake", "Kantrowitz", email = "jjkantro@gmail.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: This package allows the user to create a demographics table, often
+    called Table 1 in academic journals and required for most study designs.
+    The input can be either an expressionSet with set pData or simply a
+    data.frame object.
 Depends:
     R (>= 3.1.1)
 License: What license is it under?
